@@ -1,13 +1,31 @@
-# Motor de Latencia Crítica: Pricing & VaR (C++/Rust/C) — PENDIENTE / PENDING
+# Motor de Latencia Crítica: Pricing & VaR (C++)
 
-**Estado:** diseñado, no implementado todavía.
+**Estado:** ✅ funcional, corrido de principio a fin en esta sesión.
 
-## Diseño
+## `/cpp` — Monte Carlo (GBM), pricing de opción europea + VaR/ES de cartera
 
-- **Simulación Monte Carlo** para pricing de derivados (opciones sobre IPSA/ECH) y Value at Risk de una cartera sintética, en C++20 con OpenMP para paralelismo multi-hilo — el mismo patrón ya probado y benchmarkeado en [`copper-options-montecarlo-cpp`](https://github.com/Rxyxs/copper-options-montecarlo-cpp) (1M trayectorias en <250ms), adaptado a activos chilenos.
-- Alternativa en evaluación: Rust (`rayon` para concurrencia segura en memoria) si el objetivo termina siendo un binding expuesto vía FFI al microservicio Go de `/api`.
-- Rutinas SIMD en C puro solo si el profiling muestra que valen la pena frente a la vectorización automática de `-O3` en C++ — no se implementan preventivamente.
+```bash
+python core_engine/cpp/export_params.py   # spot + vol real desde chile_fintech.duckdb
 
-## Por qué no está aún
+# MSVC (Developer Command Prompt / tras vcvars64.bat):
+cl /O2 /openmp /EHsc core_engine/cpp/montecarlo_var.cpp /Fe:core_engine/cpp/montecarlo_var.exe
+# g++:
+g++ -O3 -fopenmp core_engine/cpp/montecarlo_var.cpp -o core_engine/cpp/montecarlo_var
 
-Pendiente de terminar `/ml_predictions` y `/quant_analytics`, que definen qué distribución de retornos y qué parámetros de volatilidad alimentan la simulación Monte Carlo.
+core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv
+```
+
+`montecarlo_var.cpp` toma spot y volatilidad anualizada reales (calculados en `chile_equity_features` sobre datos de mercado reales, no simulados) y corre:
+
+1. **Pricing de opción call europea** (GBM, descuento a tasa libre de riesgo documentada como supuesto).
+2. **VaR 99% y Expected Shortfall a 1 día** de una posición larga sobre el mismo subyacente, vía simulación de retornos diarios.
+
+**Resultado real de esta corrida:** spot=40.50, vol anualizada=19.34%, 1,000,000 trayectorias en **14.4 ms** con 16 hilos OpenMP (mismo orden de magnitud que el benchmark de `copper-options-montecarlo-cpp`: 1M trayectorias en <250ms — aquí más rápido por ser pricing europeo de un solo paso vs. la ruta completa de reversión a la media de Schwartz). VaR 99% a 1 día = ~28,017 (unidades del notional configurado), ES 99% = ~32,012.
+
+## Rust — evaluado, no implementado
+
+El diseño original contemplaba C++ **o** Rust para esta capa (no ambos). Se eligió C++ porque ya hay un benchmark comparable en el portafolio (`copper-options-montecarlo-cpp`) y porque este entorno no tenía un toolchain de Rust instalado — instalarlo solo para duplicar el mismo motor no se justificaba frente a otras prioridades del proyecto. Si en el futuro se necesita el binding vía FFI hacia el API en Go, ahí sí Rust (`rayon` para concurrencia segura en memoria) sería la elección natural sobre repetir esto en C++.
+
+## SIMD en C puro — no implementado
+
+Solo se justifica si el profiling de este motor C++ muestra que la vectorización automática de `-O3`/`/O2` no es suficiente. No se implementó preventivamente (14.4ms para 1M trayectorias ya es rápido para el caso de uso).

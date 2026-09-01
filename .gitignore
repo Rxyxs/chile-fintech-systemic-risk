@@ -10,6 +10,9 @@ quant_analytics/julia/data/
 quant_analytics/julia/reports/
 .Rhistory
 Manifest.toml
+core_engine/cpp/data/
+core_engine/cpp/*.exe
+core_engine/cpp/*.obj
 .Rproj.user/
 target/
 *.o

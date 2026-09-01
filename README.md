@@ -16,7 +16,7 @@ Arquitectura políglota para análisis de riesgo sistémico del mercado financie
 | [`/etl`](etl) | Python + DuckDB (SQL) | ✅ Funcional, datos reales |
 | [`/ml_predictions`](ml_predictions) | Python (XGBoost, PyTorch, SHAP) | ✅ Funcional (PD: sintético documentado; equity: datos reales) |
 | [`/quant_analytics`](quant_analytics) | R + Julia | ✅ Funcional, datos reales |
-| [`/core_engine`](core_engine) | C++/Rust/C | ⏳ Diseñado, pendiente |
+| [`/core_engine`](core_engine) | C++ (OpenMP) | ✅ Funcional, datos reales |
 | [`/api`](api) | Go + Java/C# | ⏳ Diseñado, pendiente |
 
 ## `/etl` — lo que ya corre
@@ -56,6 +56,16 @@ python quant_analytics/julia/export_for_julia.py && julia quant_analytics/julia/
 
 - **R:** cointegración y Granger no concluyentes por ventana de datos corta de la API gratuita (~31 obs/indicador), documentado honestamente; GARCH(1,1) muestra persistencia de volatilidad = 0.987, coherente con el LSTM que no supera el baseline.
 - **Julia:** K-Medoids separa regímenes de volatilidad reales del activo chileno (cluster de alta volatilidad = retorno promedio negativo) y perfiles de riesgo crediticio (menor DTI = menor tasa de default observada).
+
+## `/core_engine` — lo que ya corre
+
+```bash
+python core_engine/cpp/export_params.py
+cl /O2 /openmp /EHsc core_engine/cpp/montecarlo_var.cpp /Fe:core_engine/cpp/montecarlo_var.exe
+core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv
+```
+
+Motor Monte Carlo (GBM) en C++20 + OpenMP, alimentado con spot y volatilidad reales del activo chileno: pricing de opción call europea y VaR/ES 99% a 1 día de una posición larga. Resultado real: **1M trayectorias en 14.4ms** con 16 hilos.
 
 ## Por qué esta separación de lenguajes
 
