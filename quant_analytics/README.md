@@ -23,7 +23,10 @@ Lee `bcch_indicators` y `chile_equity_features` directo de `data/chile_fintech.d
 | Granger (TPM → retornos) | omitido | TPM sin variación en la ventana |
 | GARCH(1,1) persistencia (α+β) | 0.987 | Volatilidad muy persistente, retornos ~random walk |
 
+![Precio y volatilidad animados](figures/chile_equity_price_vol_animated.gif)
 ![Precio y volatilidad del activo chileno](figures/chile_equity_price_vol.png)
+
+La versión animada (`chile_equity_price_vol_animated.gif`) traza ambas series submuestreando los ~2,511 días reales a ~45 frames, con una etiqueta flotante que muestra el valor vigente en cada punto; el PNG estático de arriba queda como referencia fija para lectura detallada.
 
 ## `/julia` — Clustering de alta velocidad
 

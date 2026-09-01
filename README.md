@@ -36,7 +36,10 @@ python etl/build_duckdb.py
 
 Resultado verificado en esta sesión: 155 filas de indicadores BCCh, 2,511 filas de `chile_equity_daily` (2016-09-01 → 2026-08-31).
 
+![Precio y volatilidad animados](quant_analytics/figures/chile_equity_price_vol_animated.gif)
 ![Precio y volatilidad realizada del activo chileno](quant_analytics/figures/chile_equity_price_vol.png)
+
+La versión animada traza ambas series al ritmo real de los datos (submuestreados a ~45 frames de los 2,511 días) con una etiqueta flotante que marca el valor vigente en cada punto — útil para ver de un vistazo dónde se dispara la volatilidad, aunque el gráfico estático de abajo sigue siendo la referencia para lectura detallada.
 
 Serie completa de `ECH` 2016-2026: el panel superior es el precio de cierre, el inferior la volatilidad realizada de 20 días calculada en la vista SQL de DuckDB — se ve cómo los picos de volatilidad coinciden con los tramos de precio más agitados, la base para todo lo que viene después (LSTM, GARCH, clustering).
 
@@ -139,7 +142,10 @@ Polyglot architecture for systemic risk analysis of the Chilean financial market
 
 Two Python (Polars) ingestors against real public APIs — Chilean Central Bank indicators via [mindicador.cl](https://mindicador.cl), and daily Chile-equity OHLCV via Yahoo Finance (using `ECH`, iShares MSCI Chile ETF, as a documented proxy for `^IPSA` — yfinance's own `^IPSA` feed has a real data gap and stops returning rows after 2019-06-14 regardless of the requested range, verified 2026-08-31). Consolidated into a local DuckDB store with a SQL feature view (log returns, SMA-20, 20-day realized volatility). Verified this session: 155 indicator rows, 2,511 equity rows spanning 2016-09-01 through 2026-08-31.
 
+![Chile equity price and realized volatility, animated](quant_analytics/figures/chile_equity_price_vol_animated.gif)
 ![Chile equity price and realized volatility](quant_analytics/figures/chile_equity_price_vol.png)
+
+The animated version draws both series at the real data's pace (subsampled to ~45 frames from the 2,511 trading days) with a floating label tracking the current value on each line — a quick way to spot where volatility spikes, while the static chart below remains the reference for detailed reading.
 
 Full `ECH` series 2016-2026: the top panel is the closing price, the bottom one the 20-day realized volatility computed in the DuckDB SQL view — volatility spikes line up with the choppier price stretches, and this is the base data everything downstream (LSTM, GARCH, clustering) builds on.
 
