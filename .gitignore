@@ -13,6 +13,10 @@ Manifest.toml
 core_engine/cpp/data/
 core_engine/cpp/*.exe
 core_engine/cpp/*.obj
+api/go/data/
+api/go/predict_server.exe
+api/corporate_stubs/legacy_core_stub/bin/
+api/corporate_stubs/legacy_core_stub/obj/
 .Rproj.user/
 target/
 *.o

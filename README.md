@@ -17,7 +17,7 @@ Arquitectura políglota para análisis de riesgo sistémico del mercado financie
 | [`/ml_predictions`](ml_predictions) | Python (XGBoost, PyTorch, SHAP) | ✅ Funcional (PD: sintético documentado; equity: datos reales) |
 | [`/quant_analytics`](quant_analytics) | R + Julia | ✅ Funcional, datos reales |
 | [`/core_engine`](core_engine) | C++ (OpenMP) | ✅ Funcional, datos reales |
-| [`/api`](api) | Go + Java/C# | ⏳ Diseñado, pendiente |
+| [`/api`](api) | Go + C# | ✅ Funcional, datos reales |
 
 ## `/etl` — lo que ya corre
 
@@ -66,6 +66,15 @@ core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv
 ```
 
 Motor Monte Carlo (GBM) en C++20 + OpenMP, alimentado con spot y volatilidad reales del activo chileno: pricing de opción call europea y VaR/ES 99% a 1 día de una posición larga. Resultado real: **1M trayectorias en 14.4ms** con 16 hilos.
+
+## `/api` — lo que ya corre
+
+```bash
+python api/go/export_predictions.py && go run api/go/main.go
+cd api/corporate_stubs/legacy_core_stub && dotnet run
+```
+
+Servicio Go (stdlib, sin dependencias) que sirve predicciones ya calculadas por los modelos Python/XGBoost — verificado: `/health`, `/v1/equity/snapshot`, `/v1/credit/predictions` responden con datos reales. Stub C#/.NET de integración con core bancario legado, con decisiones de crédito basadas en los PD scores reales del modelo.
 
 ## Por qué esta separación de lenguajes
 
