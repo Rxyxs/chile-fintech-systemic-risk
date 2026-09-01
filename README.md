@@ -36,6 +36,10 @@ python etl/build_duckdb.py
 
 Resultado verificado en esta sesión: 155 filas de indicadores BCCh, 2,511 filas de `chile_equity_daily` (2016-09-01 → 2026-08-31).
 
+![Precio y volatilidad realizada del activo chileno](quant_analytics/figures/chile_equity_price_vol.png)
+
+Serie completa de `ECH` 2016-2026: el panel superior es el precio de cierre, el inferior la volatilidad realizada de 20 días calculada en la vista SQL de DuckDB — se ve cómo los picos de volatilidad coinciden con los tramos de precio más agitados, la base para todo lo que viene después (LSTM, GARCH, clustering).
+
 ## `/ml_predictions` — lo que ya corre
 
 ```bash
@@ -45,7 +49,16 @@ python ml_predictions/train_lstm_equity.py             # LSTM direccional sobre 
 ```
 
 - **PD (XGBoost + SHAP):** AUC held-out = 0.624 sobre cartera de crédito sintética documentada (no hay fuente pública chilena a nivel de deudor individual). SHAP confirma que `dti` y morosidad previa dominan, como está diseñado en la simulación.
+
+![Importancia de features por SHAP](ml_predictions/reports/figures/shap_importance.png)
+
+`dti` y `num_prior_delinquencies` concentran la mayor parte del |SHAP value| promedio — exactamente las dos variables con más peso en la función logística que generó los defaults sintéticos, así que este gráfico funciona como verificación de que el pipeline de explicabilidad recupera la señal real, no ruido.
+
 - **LSTM direccional (datos reales):** accuracy de test = 51.2%, **por debajo** del baseline de clase mayoritaria (53.6%). Hallazgo honesto, no descartado — mismo patrón que en `reading-market-turbulence`.
+
+![LSTM vs. baseline de clase mayoritaria](ml_predictions/reports/figures/lstm_vs_baseline.png)
+
+La barra del LSTM queda por debajo de la del baseline — no es un gráfico decorativo, es la evidencia visual del hallazgo honesto-negativo: predecir siempre la clase más frecuente le gana al modelo entrenado.
 
 ## `/quant_analytics` — lo que ya corre
 
@@ -66,6 +79,10 @@ core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv
 ```
 
 Motor Monte Carlo (GBM) en C++20 + OpenMP, alimentado con spot y volatilidad reales del activo chileno: pricing de opción call europea y VaR/ES 99% a 1 día de una posición larga. Resultado real: **1M trayectorias en 14.4ms** con 16 hilos.
+
+![Distribución de PnL simulado con VaR/ES](core_engine/figures/montecarlo_var_distribution.png)
+
+Histograma de 20,000 trayectorias de PnL a 1 día (submuestra de los datos que efectivamente se graficaron; la métrica de VaR/ES se calcula igual sobre el millón completo). Las líneas verticales marcan dónde caen el VaR 99% y el Expected Shortfall 99% sobre esa distribución — la cola izquierda es justamente lo que ambas métricas están midiendo.
 
 ## `/api` — lo que ya corre
 
@@ -95,15 +112,6 @@ Servicio Go (stdlib, sin dependencias) que sirve predicciones ya calculadas por 
 | Clustering (Julia) | Default rate, cluster de menor DTI | 6.1% (vs. 13.6% del más riesgoso) |
 | Motor Monte Carlo (C++) | 1M trayectorias | 14.4 ms, 16 hilos |
 
-<p align="center">
-<img src="quant_analytics/figures/chile_equity_price_vol.png" width="49%">
-<img src="core_engine/figures/montecarlo_var_distribution.png" width="49%">
-</p>
-<p align="center">
-<img src="ml_predictions/reports/figures/shap_importance.png" width="49%">
-<img src="ml_predictions/reports/figures/lstm_vs_baseline.png" width="49%">
-</p>
-
 ## Próximos pasos
 
 Los 5 módulos ya son funcionales con datos reales. Mejoras pendientes documentadas en cada README de módulo: Temporal Fusion Transformer y ensamble LightGBM en `/ml_predictions`, ventana de datos más larga para los tests econométricos en `/quant_analytics`, y evaluación de Rust/Java como alternativas en `/core_engine` y `/api` respectivamente.
@@ -131,10 +139,23 @@ Polyglot architecture for systemic risk analysis of the Chilean financial market
 
 Two Python (Polars) ingestors against real public APIs — Chilean Central Bank indicators via [mindicador.cl](https://mindicador.cl), and daily Chile-equity OHLCV via Yahoo Finance (using `ECH`, iShares MSCI Chile ETF, as a documented proxy for `^IPSA` — yfinance's own `^IPSA` feed has a real data gap and stops returning rows after 2019-06-14 regardless of the requested range, verified 2026-08-31). Consolidated into a local DuckDB store with a SQL feature view (log returns, SMA-20, 20-day realized volatility). Verified this session: 155 indicator rows, 2,511 equity rows spanning 2016-09-01 through 2026-08-31.
 
+![Chile equity price and realized volatility](quant_analytics/figures/chile_equity_price_vol.png)
+
+Full `ECH` series 2016-2026: the top panel is the closing price, the bottom one the 20-day realized volatility computed in the DuckDB SQL view — volatility spikes line up with the choppier price stretches, and this is the base data everything downstream (LSTM, GARCH, clustering) builds on.
+
 ## `/ml_predictions`
 
 - **PD (XGBoost + SHAP):** held-out AUC = 0.624 on a documented synthetic credit portfolio (no public Chilean borrower-level dataset exists). SHAP confirms `dti` and prior delinquencies dominate, as designed into the simulation.
+
+![SHAP feature importance](ml_predictions/reports/figures/shap_importance.png)
+
+`dti` and `num_prior_delinquencies` account for most of the mean |SHAP value| — exactly the two variables that dominate the logistic function used to generate the synthetic defaults, so this chart doubles as a sanity check that the explainability pipeline recovers real signal, not noise.
+
 - **Directional LSTM (real data):** test accuracy = 51.2%, **below** the majority-class baseline (53.6%). Honest finding, not discarded — same pattern as `reading-market-turbulence`.
+
+![LSTM vs. majority-class baseline](ml_predictions/reports/figures/lstm_vs_baseline.png)
+
+The LSTM bar sits below the baseline bar — not decorative, it's the visual evidence for the honest-negative finding: always predicting the more frequent class beats the trained model here.
 
 ## `/quant_analytics`
 
@@ -144,6 +165,10 @@ Two Python (Polars) ingestors against real public APIs — Chilean Central Bank 
 ## `/core_engine`
 
 Monte Carlo (GBM) engine in C++20 + OpenMP, fed with real spot and volatility from Chilean equity: European call pricing and 1-day 99% VaR/ES on a long position. Real result: **1M paths in 14.4ms** with 16 threads.
+
+![Simulated PnL distribution with VaR/ES](core_engine/figures/montecarlo_var_distribution.png)
+
+Histogram of 20,000 1-day PnL paths (a subsample of what actually gets plotted; the VaR/ES metrics themselves are computed over the full million). The vertical lines mark where the 99% VaR and 99% Expected Shortfall fall on that distribution — the left tail is exactly what both metrics are measuring.
 
 ## `/api`
 
