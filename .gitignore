@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 data/raw/
 data/*.duckdb
+ml_predictions/data/
+ml_predictions/reports/
 .Rproj.user/
 target/
 *.o

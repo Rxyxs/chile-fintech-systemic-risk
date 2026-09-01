@@ -14,7 +14,7 @@ Arquitectura políglota para análisis de riesgo sistémico del mercado financie
 | Módulo | Lenguaje(s) | Estado |
 |---|---|---|
 | [`/etl`](etl) | Python + DuckDB (SQL) | ✅ Funcional, datos reales |
-| [`/ml_predictions`](ml_predictions) | Python (XGBoost, PyTorch, SHAP) | ⏳ Diseñado, pendiente |
+| [`/ml_predictions`](ml_predictions) | Python (XGBoost, PyTorch, SHAP) | ✅ Funcional (PD: sintético documentado; equity: datos reales) |
 | [`/quant_analytics`](quant_analytics) | R + Julia | ⏳ Diseñado, pendiente |
 | [`/core_engine`](core_engine) | C++/Rust/C | ⏳ Diseñado, pendiente |
 | [`/api`](api) | Go + Java/C# | ⏳ Diseñado, pendiente |
@@ -35,6 +35,17 @@ python etl/build_duckdb.py
 ```
 
 Resultado verificado en esta sesión: 155 filas de indicadores BCCh, 2,511 filas de `chile_equity_daily` (2016-09-01 → 2026-08-31).
+
+## `/ml_predictions` — lo que ya corre
+
+```bash
+python ml_predictions/simulate_credit_portfolio.py   # cartera sintética documentada
+python ml_predictions/train_pd_model.py               # XGBoost + SHAP
+python ml_predictions/train_lstm_equity.py             # LSTM direccional sobre datos reales
+```
+
+- **PD (XGBoost + SHAP):** AUC held-out = 0.624 sobre cartera de crédito sintética documentada (no hay fuente pública chilena a nivel de deudor individual). SHAP confirma que `dti` y morosidad previa dominan, como está diseñado en la simulación.
+- **LSTM direccional (datos reales):** accuracy de test = 51.2%, **por debajo** del baseline de clase mayoritaria (53.6%). Hallazgo honesto, no descartado — mismo patrón que en `reading-market-turbulence`.
 
 ## Por qué esta separación de lenguajes
 
