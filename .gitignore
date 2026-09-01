@@ -5,6 +5,11 @@ data/raw/
 data/*.duckdb
 ml_predictions/data/
 ml_predictions/reports/
+quant_analytics/r/reports/
+quant_analytics/julia/data/
+quant_analytics/julia/reports/
+.Rhistory
+Manifest.toml
 .Rproj.user/
 target/
 *.o

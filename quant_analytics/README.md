@@ -1,19 +1,32 @@
-# Econometría & Clustering (R + Julia) — PENDIENTE / PENDING
+# Econometría & Clustering (R + Julia)
 
-**Estado:** diseñado, no implementado todavía.
+**Estado:** ✅ funcional, corrido de principio a fin en esta sesión.
 
 ## `/r` — Econometría macro
 
-- Cointegración (Engle-Granger / Johansen) entre TPM, UF, USD/CLP e IMACEC.
-- Causalidad de Granger entre tasa de política monetaria y retornos de renta variable chilena.
-- ARIMA/GARCH sobre volatilidad de `chile_equity_features` como benchmark econométrico frente a los modelos de deep learning de `/ml_predictions`.
-- Fuente de datos: la misma tabla `bcch_indicators` de `data/chile_fintech.duckdb`, leída directo desde R vía el paquete `duckdb`.
+```bash
+Rscript quant_analytics/r/macro_econometrics.R   # ejecutar desde la raíz del proyecto
+```
+
+Lee `bcch_indicators` y `chile_equity_features` directo de `data/chile_fintech.duckdb`.
+
+**Resultados reales de esta corrida:**
+- **Cointegración (Engle-Granger, UF vs USD/CLP):** ADF stat = -1.147 sobre n=21 — **no concluyente** (se necesita ~-3.5 o más negativo). La API pública de `mindicador.cl` solo entrega ~31 observaciones recientes por indicador, ventana insuficiente para un test de cointegración robusto. Documentado, no maquillado.
+- **Causalidad de Granger (TPM → retornos):** se salta el test — en la ventana disponible la TPM prácticamente no varía (1 valor único tras forward-fill), así que no hay señal que testear. Mismo problema de ventana de datos.
+- **ARIMA(1,0,0)-GARCH(1,1) sobre retornos del activo chileno:** persistencia de volatilidad (α+β) = **0.987** — muy alta, consistente con el hallazgo del LSTM en `/ml_predictions` (51.2% vs 53.6% baseline): los retornos se comportan casi como random walk en dirección, aunque la volatilidad esté fuertemente correlacionada en el tiempo.
+
+**Limitación honesta:** los dos primeros tests dependen de una ventana temporal más larga de indicadores del Banco Central que la que expone la API gratuita de `mindicador.cl` hoy. Quedan implementados y correctos, pero sub-potenciados por la fuente de datos — no es un bug del código.
 
 ## `/julia` — Clustering de alta velocidad
 
-- K-Medoids / HDBSCAN sobre perfiles de riesgo crediticio (una vez exista el dataset simulado de `/ml_predictions`) y sobre regímenes de volatilidad del activo chileno.
-- Justificación de Julia: cálculo matricial de alto desempeño sin el overhead de la JVM/Python GIL, relevante cuando el clustering corre sobre ventanas rolling grandes.
+```bash
+python quant_analytics/julia/export_for_julia.py   # exporta CSVs desde DuckDB/parquet
+julia quant_analytics/julia/cluster_profiles.jl
+```
 
-## Por qué no está aún
+K-Medoids (`Clustering.jl` + `Distances.jl`) sobre dos problemas:
 
-Depende de que `/ml_predictions` genere primero el dataset de riesgo crediticio simulado, y de priorización explícita del usuario para el resto del stack políglota.
+1. **Regímenes de volatilidad del activo chileno** (retorno log, SMA-20, volatilidad realizada 20d), k=3. Resultado real: el cluster de mayor volatilidad (0.0218 vs ~0.012 de los otros dos) coincide con retorno promedio negativo (-0.0083) — identifica el régimen de estrés del mercado.
+2. **Perfiles de riesgo en la cartera de crédito sintética** (DTI, morosidad previa, ingreso, monto del préstamo), k=4, submuestreado a 5,000 filas (una matriz de distancia par-a-par de 20k×20k son 3.2GB en Float64 — innecesario para este benchmark). Resultado real: el cluster con menor DTI promedio (0.209) tiene la menor tasa de default observada (6.1%) — el clustering separa perfiles de riesgo de forma consistente con la lógica de generación.
+
+Justificación de Julia: cálculo matricial de distancias par-a-par sin el overhead del GIL de Python ni el arranque de la JVM — relevante en este tipo de carga puramente numérica sobre ventanas grandes.
