@@ -85,6 +85,25 @@ Servicio Go (stdlib, sin dependencias) que sirve predicciones ya calculadas por 
 - **C++/Rust** para el motor Monte Carlo de pricing/VaR: el *hot-path* del sistema necesita control de memoria y paralelismo real (OpenMP/rayon), no algo que Python pueda dar sin FFI de todas formas.
 - **Go** para el API de predicciones: throughput de muchas requests concurrentes de scoring, no cómputo pesado — el modelo ya corrió offline.
 
+## Resultados clave (esta sesión)
+
+| Módulo | Métrica | Resultado |
+|---|---|---|
+| PD (XGBoost+SHAP) | AUC held-out | 0.624 |
+| Dirección equity (LSTM) | Accuracy vs. baseline | 51.2% vs. **53.6%** (no supera baseline) |
+| Econometría (R, GARCH) | Persistencia de volatilidad | 0.987 |
+| Clustering (Julia) | Default rate, cluster de menor DTI | 6.1% (vs. 13.6% del más riesgoso) |
+| Motor Monte Carlo (C++) | 1M trayectorias | 14.4 ms, 16 hilos |
+
+<p align="center">
+<img src="quant_analytics/figures/chile_equity_price_vol.png" width="49%">
+<img src="core_engine/figures/montecarlo_var_distribution.png" width="49%">
+</p>
+<p align="center">
+<img src="ml_predictions/reports/figures/shap_importance.png" width="49%">
+<img src="ml_predictions/reports/figures/lstm_vs_baseline.png" width="49%">
+</p>
+
 ## Próximos pasos
 
 Ver el README de cada módulo pendiente para el diseño detallado y la razón de por qué aún no está implementado.

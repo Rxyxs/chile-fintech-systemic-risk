@@ -55,6 +55,7 @@ struct SimResult {
     double es_99 = 0.0;
     long paths = 0;
     double seconds = 0.0;
+    std::vector<double> pnl_sample;  // first N paths, for optional CSV/plotting dump
 };
 
 SimResult run_simulation(const MarketParams& p, double strike, double maturity_years,
@@ -115,12 +116,20 @@ SimResult run_simulation(const MarketParams& p, double strike, double maturity_y
     result.es_99 = es_99;
     result.paths = n_paths;
     result.seconds = std::chrono::duration<double>(t1 - t0).count();
+    long sample_size = std::min<long>(n_paths, 20'000);
+    result.pnl_sample.assign(pnl_1d.begin(), pnl_1d.begin() + sample_size);
     return result;
 }
 
 int main(int argc, char** argv) {
     std::string params_path = "core_engine/cpp/data/market_params.csv";
     if (argc > 1) params_path = argv[1];
+
+    // Optional: dump a subsample of simulated 1-day PnL paths to CSV for
+    // plotting (core_engine/make_chart.py). Off by default because 1M rows
+    // is unnecessary for a histogram.
+    std::string pnl_dump_path;
+    if (argc > 2) pnl_dump_path = argv[2];
 
     long n_paths = 1'000'000;
     double maturity_years = 30.0 / 365.0;  // 30-day option, matches the LSTM's 30s->daily horizon framing loosely
@@ -143,6 +152,12 @@ int main(int argc, char** argv) {
 #else
         std::cout << "openmp_threads=1 (built without OpenMP)\n";
 #endif
+        if (!pnl_dump_path.empty()) {
+            std::ofstream out(pnl_dump_path);
+            out << "pnl_1d\n";
+            for (double v : r.pnl_sample) out << v << "\n";
+            std::cout << "pnl_sample_dumped=" << r.pnl_sample.size() << " -> " << pnl_dump_path << "\n";
+        }
     } catch (const std::exception& e) {
         std::cerr << "error: " << e.what() << "\n";
         return 1;

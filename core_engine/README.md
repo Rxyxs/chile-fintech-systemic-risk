@@ -22,6 +22,26 @@ core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv
 
 **Resultado real de esta corrida:** spot=40.50, vol anualizada=19.34%, 1,000,000 trayectorias en **14.4 ms** con 16 hilos OpenMP (mismo orden de magnitud que el benchmark de `copper-options-montecarlo-cpp`: 1M trayectorias en <250ms — aquí más rápido por ser pricing europeo de un solo paso vs. la ruta completa de reversión a la media de Schwartz). VaR 99% a 1 día = ~28,017 (unidades del notional configurado), ES 99% = ~32,012.
 
+| Métrica | Valor |
+|---|---|
+| Spot (real, ECH) | 40.50 |
+| Volatilidad anualizada (real) | 19.34% |
+| Trayectorias | 1,000,000 |
+| Tiempo de ejecución | 14.4 ms |
+| Hilos OpenMP | 16 |
+| Precio call (2% OTM, 30d) | 0.619 (stderr 0.0011) |
+| VaR 99% (1 día) | ~28,017 |
+| ES 99% (1 día) | ~32,012 |
+
+![Distribución de PnL simulado y VaR/ES](figures/montecarlo_var_distribution.png)
+
+### Regenerar el gráfico
+
+```bash
+core_engine/cpp/montecarlo_var.exe core_engine/cpp/data/market_params.csv core_engine/cpp/data/pnl_sample.csv
+python core_engine/make_chart.py
+```
+
 ## Rust — evaluado, no implementado
 
 El diseño original contemplaba C++ **o** Rust para esta capa (no ambos). Se eligió C++ porque ya hay un benchmark comparable en el portafolio (`copper-options-montecarlo-cpp`) y porque este entorno no tenía un toolchain de Rust instalado — instalarlo solo para duplicar el mismo motor no se justificaba frente a otras prioridades del proyecto. Si en el futuro se necesita el binding vía FFI hacia el API en Go, ahí sí Rust (`rayon` para concurrencia segura en memoria) sería la elección natural sobre repetir esto en C++.
