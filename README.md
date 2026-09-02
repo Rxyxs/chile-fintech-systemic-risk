@@ -1,5 +1,7 @@
 [ 🇨🇱 Versión en Español ](#-español) &nbsp;|&nbsp; [ 🇺🇸 English Version ](#-english)
 
+[![tests](https://github.com/Rxyxs/chile-fintech-systemic-risk/actions/workflows/tests.yml/badge.svg)](https://github.com/Rxyxs/chile-fintech-systemic-risk/actions/workflows/tests.yml)
+
 ---
 
 <a name="-español"></a>
@@ -152,6 +154,7 @@ HTML autocontenido (`outputs/interactive/systemic_risk_dashboard.html`, generado
 | Motor Monte Carlo (C++) | 1M trayectorias | 14.6 ms, 16 hilos |
 | API Go | Endpoints verificados en vivo | `/health`, `/v1/equity/snapshot`, `/v1/credit/predictions` — 200 predicciones reales |
 | Stub C#/.NET | Decisiones de crédito verificadas | 1 aprobada, 1 rechazada, ambas basadas en PD real |
+| Tests automatizados (pytest, CI) | 15 tests reales | `etl/build_duckdb.py` (SQL de la vista de features) y los 3 módulos de `ml_predictions/` (generador sintético, PD+SHAP, LSTM) |
 
 ## Próximos pasos
 
@@ -278,6 +281,7 @@ A self-contained HTML file (`outputs/interactive/systemic_risk_dashboard.html`, 
 | Monte Carlo engine (C++) | 1M paths | 14.6 ms, 16 threads |
 | Go API | Live-verified endpoints | `/health`, `/v1/equity/snapshot`, `/v1/credit/predictions` — 200 real predictions |
 | C#/.NET stub | Verified credit decisions | 1 approved, 1 rejected, both based on real PD |
+| Automated tests (pytest, CI) | 15 real tests | `etl/build_duckdb.py` (feature-view SQL) and all 3 `ml_predictions/` modules (synthetic generator, PD+SHAP, LSTM) |
 
 ## Next steps
 
