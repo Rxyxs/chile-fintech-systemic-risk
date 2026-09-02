@@ -157,6 +157,12 @@ HTML autocontenido (`outputs/interactive/systemic_risk_dashboard.html`, generado
 
 Los 5 módulos ya son funcionales con datos reales. Mejoras pendientes documentadas en cada README de módulo: Temporal Fusion Transformer y ensamble LightGBM en `/ml_predictions`, ventana de datos más larga para los tests econométricos en `/quant_analytics`, y evaluación de Rust/Java como alternativas en `/core_engine` y `/api` respectivamente.
 
+## Autor
+
+Pablo Reyes — Data Scientist, Santiago, Chile.
+
+Licencia: MIT — ver [LICENSE](LICENSE).
+
 ---
 
 <a name="-english"></a>
@@ -276,3 +282,9 @@ A self-contained HTML file (`outputs/interactive/systemic_risk_dashboard.html`, 
 ## Next steps
 
 All 5 modules are functional on real data. Documented follow-ups per module: a Temporal Fusion Transformer and a LightGBM challenger in `/ml_predictions`, a longer data window for the econometric tests in `/quant_analytics`, and evaluating Rust/Java as alternatives in `/core_engine` and `/api` respectively.
+
+## Author
+
+Pablo Reyes — Data Scientist, Santiago, Chile.
+
+License: MIT — see [LICENSE](LICENSE).
