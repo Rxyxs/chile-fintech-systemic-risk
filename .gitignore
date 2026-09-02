@@ -21,5 +21,8 @@ api/corporate_stubs/legacy_core_stub/obj/
 .Rproj.user/
 target/
 *.o
+*.obj
 *.exe
 .env
+CLAUDE.md
+.claude/
