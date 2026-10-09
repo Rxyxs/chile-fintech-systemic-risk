@@ -1,4 +1,4 @@
-[ 🇺🇸 English ] | [ 🇨🇱 [Leer en Español](README.es.md) ]
+[ English ] | [ [Leer en Español](README.es.md) ]
 
 # chile-fintech-systemic-risk
 
